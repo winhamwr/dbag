@@ -94,16 +94,16 @@ Installation
 
     $ pip install dbag
 
-2. Add `dbag` to your tuple of `INSTALLED_APPS`.
-3. Add the dbag urls to your `urls.py`. 
-   Eg::
+2. Add `dbag` to your tuple of ``INSTALLED_APPS``.
+3. Add the dbag urls to your ``urls.py``. Eg::
 
         urlpatterns = patterns('',
             url('^dbag/', include('dbag.urls'),
         )
 
-    If you're not using `Nexus <https://github.com/dcramer/nexus>`_ then you also
-    need to add this to ``urls.py`` for automatic ``MetricType`` discovery::
+    If you're not using `Nexus <https://github.com/dcramer/nexus>`_ then you
+    also need to add this to ``urls.py`` for automatic ``MetricType``
+    discovery::
 
         import dbag
         dbag.autodiscover()
@@ -113,7 +113,7 @@ Installation
     $ ./manage.py syncdb
     $ ./manage.py dbag_init
     
-4. If you're already using `Celery <http://celeryproject.org/>`_, then
+4. If you're already using `Celery <http://celeryproject.org/>`_ then
     ensure that
     `celerybeat <http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#starting-celerybeat>`_
     is running. Otherwise, you can run:: 
@@ -137,7 +137,9 @@ Installation
 Add a New Metric
 ----------------
 
-You can add new metrics to start collecting either through the `Nexus <https://github.com/dcramer/nexus>`_ frontend or via the API in python. Either way you'll be choosing 5 things to define your metric.
+You can add new metrics to start collecting either through the `Nexus
+<https://github.com/dcramer/nexus>`_ frontend or via the API in python. Either
+way you'll be choosing 5 things to define your metric.
 
 **MetricType** 
     The label for the type of metric we're collecting. These python subclasses
@@ -183,8 +185,10 @@ You can add a new MetricType whenever you need to gather/summarize data from a
 new source. An example would be a MetricType that used github's API to count
 the number of open tickets on a specific project. Subclass
 ``dbag.metric_types.MetricType`` with your object, put it in a
-``dbag_metric_types`` module in one of your ``INSTALLED_APPS`` and then call
-``dbag.register_metric_type(<your label>, <your class>)``.
+``dbag_metric_types`` module in one of your ``INSTALLED_APPS`` and then call::
+
+    import dbag
+    dbag.register_metric_type(<your label>, <your class>)
 
 For now, check the builtin types located at ``dbag.metric_types`` for details.
 
