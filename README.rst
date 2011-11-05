@@ -69,7 +69,9 @@ If you just want to dump any kind of data at any volume in to one system and
 then graph it a thousand different ways, you should use
 `graphite <http://graphite.wikidot.com/>`_. You'll want to put it on a different
 server and you'll need to figure it out, but you'll get as much scalability and
-flexibility as you need.
+flexibility as you need. `dbag` actually works well in combination with
+graphite if you'd like to display simple dashboards of summarized date to your
+users.
 
 Other Django Dashboards
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,11 +80,17 @@ There are some other Django dashboarding-ish apps around.
 
 * This one isn't meant to be general-purpose, but is used specifically for
   grabbing metrics for the `Django project
-  dashboard <https://github.com/jacobian/django-dev-dashboard>`_.
+  dashboard <https://github.com/jacobian/django-dev-dashboard>`_. It has very
+  attractive panels with a optional sparklines and a nice master/default
+  layout. Visual inspiration was taken heavily from this project and `dbag` can
+  be used to effectively recreate the Django project dashboard..
 * This sub-project in
   `djutils <http://charlesleifer.com/docs/djutils/django-utils/dashboard/panels.html>`_
-  is effectively an attempt at re-creating Munin using Django. If that's what
-  you need, then you should use it.
+  effectively re-creates Munin using Django. It allows you to collect and
+  aggregate very granular data using whatever python code you'd like. It does
+  not however let you create parameterized panels and metrics (meaning that if
+  you wanted to create separate panels for every ``Customer`` in your database,
+  you'd need to write python code registering a panel for each customer.
 * These exist but `aren't <http://code.google.com/p/django-dashboard/>`_
   `documented <https://github.com/stefanw/django-dashboard>`_ or
   `maintained <https://github.com/ojii/django-dashboard>`_.
@@ -112,7 +120,7 @@ Installation
 
     $ ./manage.py syncdb
     $ ./manage.py dbag_init
-    
+
 4. If you're already using `Celery <http://celeryproject.org/>`_ then
     ensure that
     `celerybeat <http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#starting-celerybeat>`_
@@ -141,16 +149,14 @@ You can add new metrics to start collecting either through the `Nexus
 <https://github.com/dcramer/nexus>`_ frontend or via the API in python. Either
 way you'll be choosing 5 things to define your metric.
 
-**MetricType** 
+**metric_type** 
     The label for the type of metric we're collecting. These python subclasses
-    of `dbag.metric_types.MetricType` are registered with dbag (with a unique label) and define how a
-    metric is gathered and what options are required to gather it. Included
-    examples are an `ActiveUsers` type that optionally takes an ORM filter to
-    define a subset of users and a `MixpanelEvent` type that takes an event name
-    and optional properties to slice and records the value for the day.
-
-**Metric Properties** 
-    Some MetricTypes take required or optional configuration properties.
+    of ``dbag.metric_types.MetricType`` are registered with dbag (with a unique
+    label) and define how a metric is gathered and what options are required to
+    gather it. Included examples are an ``ActiveUsersCount`` type that optionally
+    takes an ORM filter to define a subset of users and a ``MixpanelEvent`` type
+    that takes an event name and optional properties to slice and records the
+    value for the day.
 
 **label** 
     The human-readable name of this metric.
@@ -161,11 +167,13 @@ way you'll be choosing 5 things to define your metric.
 **description** 
     An optional long-form description of this metric.
 
-**do_display** 
-    Whether or not to include this metric on dashboards (defaults to True).
-
 **do_collect** 
     Whether or not to collect new values for this metric (default to False).
+
+**kwargs** 
+    Some MetricTypes take required or optional keyword configuration arguments.
+    In the following example, ``mp_property`` is an optional keyword argument.
+
 
 An example API call to create a metric might be::
 
@@ -175,7 +183,7 @@ An example API call to create a metric might be::
         label='superuser comments', 
         slug='superuser_comments', 
         description="number of comments made by superusers", 
-        prop__mp_property="is_superuser=true")
+        mp_property="is_superuser=true")
 
 
 Create a New MetricType
