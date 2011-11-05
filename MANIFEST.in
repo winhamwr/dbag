@@ -1,0 +1,5 @@
+include setup.py 
+include AUTHORS CHANGELOG.rst LICENSE MANIFEST.in README.rst
+recursive-include dbag/media *
+recursive-include dbag/templates *
+global-exclude *~
