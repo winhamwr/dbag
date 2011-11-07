@@ -149,7 +149,7 @@ You can add new metrics to start collecting either through the `Nexus
 <https://github.com/dcramer/nexus>`_ frontend or via the API in python. Either
 way you'll be choosing 5 things to define your metric.
 
-**metric_type** 
+**metric_type_label** 
     The label for the type of metric we're collecting. These python subclasses
     of ``dbag.metric_types.MetricType`` are registered with dbag (with a unique
     label) and define how a metric is gathered and what options are required to

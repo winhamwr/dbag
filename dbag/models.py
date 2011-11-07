@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.template.defaultfilters import slugify
 
 from jsonfield import JSONField
 
@@ -48,7 +49,7 @@ class Metric(models.Model):
         that's already collected.
 
     """
-    metric_type = models.CharField(max_length=200)
+    metric_type_label = models.CharField(max_length=200)
     metric_properties = JSONField(default="{}")
 
     slug = models.CharField(max_length=75, unique=True)
@@ -59,6 +60,17 @@ class Metric(models.Model):
     unit_label_plural = models.CharField(max_length=75)
 
     do_collect = models.BooleanField(default=True)
+
+    def get_latest_sample(self):
+        return DatumSample.objects.filter(metric=self)[0]
+
+    def collect_metric(self, manager):
+        metric_type_cls = manager.get_metric_type(self.metric_type_label)
+        metric_type = metric_type_cls()
+        data_value = metric_type.gather_data_sample(self)
+
+        datum_sample = DatumSample.objects.create(
+            metric=self, utc_timestamp=datetime.datetime.utcnow(), value=data_value)
 
 class DatumSample(models.Model):
     """
@@ -108,5 +120,49 @@ class DashboardPanel(models.Model):
 
     class Meta:
         unique_together = ('metric', 'dashboard')
+
+class MetricManager(object):
+
+    def __init__(self):
+        self._registry = {}
+        super(MetricManager, self).__init__()
+
+    def register_metric_type(self, label, metric_type):
+        self._registry[label] = metric_type
+
+    def unregister_metric_type(self, label):
+        self._registry.pop(label)
+
+    def get_metric_type(self, label):
+        return self._registry.get(label)
+
+    def get_metric_types(self):
+        return self._registry
+
+    def create_metric(
+        self, metric_type_label, label, slug=None, description=None, *args, **kwargs):
+        if not self.get_metric_type(metric_type_label):
+            raise Exception("MetricType doesn't exist with label %s" % metric_type_label)
+
+        if not slug:
+            slug = slugify(label)
+        metric_properties = kwargs
+        if not metric_properties:
+            metric_properties = {}
+
+        metric = Metric.objects.create(
+            metric_type_label=metric_type_label,
+            label=label,
+            slug=slug,
+            description=description,
+            metric_properties=metric_properties,
+        )
+
+        return metric
+
+    def collect_metrics(self):
+        for metric in Metric.objects.filter(do_collect=True):
+            metric.collect_metric(self)
+
 
 

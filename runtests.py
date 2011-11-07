@@ -17,7 +17,6 @@ if not settings.configured:
             'django.contrib.auth',
             'django.contrib.admin',
             'django.contrib.sessions',
-            'django.contrib.sites',
             'django.contrib.contenttypes',
 
             'dbag',
