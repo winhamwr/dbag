@@ -116,21 +116,30 @@ Installation
         import dbag
         dbag.autodiscover()
 
-3. Create the database schema and initial metrics::
+3. Create the database schema::
+  
 
-    $ ./manage.py syncdb
+        $ ./manage.py syncdb
+
+    or if you're using `South <http://south.aeracode.org/>`_ ::
+    
+        $ ./manage.py syncdb --migrate
+
+4. Configure some initial metrics::
+
     $ ./manage.py dbag_init
 
-4. If you're already using `Celery <http://celeryproject.org/>`_ then
+5. If you're already using `Celery <http://celeryproject.org/>`_ then
     ensure that
     `celerybeat <http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#starting-celerybeat>`_
     is running. Otherwise, you can run:: 
     
         $ ./manage.py dbag_output_cronjob > /etc/cron.d/dbag_collect_metrics 
     
-    to set up a cron job to collect your metrics every day. 
+    to set up a cron job to collect your metrics every day. You'll need to
+   edit the resulting file to use the correct paths and the correct user. 
 
-5. If you want to force collection of your first days worth of metrics, you can also run::
+6. If you want to force collection of your first days worth of metrics, you can also run::
 
        $ ./manage.py dbag_collect_metrics
 
@@ -138,7 +147,7 @@ Installation
 
        $ ./manage.py dbag_fake_metrics
 
-6. Now start up your devserver, login and visit 
+7. Now start up your devserver, login and visit 
    `http://localhost:8000/dbag/ <http://localhost:8000/dbag/>`_
    (or wherever you told your ``urls.py`` to point for dbag).
 
@@ -177,8 +186,8 @@ way you'll be choosing 5 things to define your metric.
 
 An example API call to create a metric might be::
 
-    from dbag import create_metric
-    create_metric(
+    from dbag import dbag_manager
+    dbag_manager.create_metric(
         'MixpanelEvent', 
         label='superuser comments', 
         slug='superuser_comments', 
@@ -195,8 +204,8 @@ the number of open tickets on a specific project. Subclass
 ``dbag.metric_types.MetricType`` with your object, put it in a
 ``dbag_metric_types`` module in one of your ``INSTALLED_APPS`` and then call::
 
-    import dbag
-    dbag.register_metric_type(<your label>, <your class>)
+    from dbag import dbag_manager
+    dbag_manager.register_metric_type(<your label>, <your class>)
 
 For now, check the builtin types located at ``dbag.metric_types`` for details.
 
