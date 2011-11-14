@@ -5,21 +5,29 @@ from django.template.defaultfilters import slugify
 
 from jsonfield import JSONField
 
+class MetricCollectionDisabled(Exception):
+    """
+    Thrown when we attempt to collect a new ``DataSample`` for a ``Metric`` that
+    currently has ``do_collect`` toggled off.
+    """
+    pass
+
+
 class Metric(models.Model):
     """
     A specific combination of a ``MetricType`` and configuration that is then
-    related to one ``DatumSample`` per day to define a trend. This generally matches
+    related to one ``DataSample`` per day to define a trend. This generally matches
     to one panel on a Dashboard.
 
     ``metric_type``
         The string under which a specific ``MetricType`` class was
-        registered. The ``MetricType`` defines how the ``DatumSample`` is actually
+        registered. The ``MetricType`` defines how the ``DataSample`` is actually
         retrieved.
 
     ``metric_properties``
         This is a JSON representation of all properties that
         the ``MetricType`` requires in order to retrieve a specific
-        ``DatumSample``. For example, a ``MetricType`` for retrieving the results
+        ``DataSample``. For example, a ``MetricType`` for retrieving the results
         of a query against the ORM might require a Model name and a specific ORM
         query.
 
@@ -62,17 +70,35 @@ class Metric(models.Model):
     do_collect = models.BooleanField(default=True)
 
     def get_latest_sample(self):
-        return DatumSample.objects.filter(metric=self)[0]
+        return DataSample.objects.filter(metric=self)[0]
 
-    def collect_metric(self, manager):
+    def collect_data_sample(self, manager, override_do_collect=False):
+        """
+        Use the appropriate ``MetricType`` corresponding to our
+        ``metric_type_label`` to ollect a new data sample and create a new
+        corresponding ``DataSample`` object with the current (utc-adjusted)
+        timestamp.
+
+        ``override_do_collect`` If ``do_collect`` is ``False``, then ``override_do_collect`` must be true or an
+        """
+        if not override_do_collect and not self.do_collect:
+            # Don't allow collection of a toggled-off Metric without an explicit override
+            raise MetricCollectionDisabled(
+                "Metric collection is disabled for Metric %s and "
+                "override_do_collect was not True" % self)
         metric_type_cls = manager.get_metric_type(self.metric_type_label)
+        if metric_type_cls is None:
+            raise Exception(
+                "No metric type for this metric: %s" % self.metric_type_label)
         metric_type = metric_type_cls()
-        data_value = metric_type.gather_data_sample(self)
+        data_value = metric_type.collect_data_sample(self)
 
-        datum_sample = DatumSample.objects.create(
+        data_sample = DataSample.objects.create(
             metric=self, utc_timestamp=datetime.datetime.utcnow(), value=data_value)
 
-class DatumSample(models.Model):
+        return data_sample
+
+class DataSample(models.Model):
     """
     One sample of a given metric representing a daily summary.
 
@@ -140,7 +166,10 @@ class MetricManager(object):
         return self._registry
 
     def create_metric(
-        self, metric_type_label, label, slug=None, description=None, *args, **kwargs):
+        self, metric_type_label, label, slug=None, description=None,
+        unit_label='unit', unit_label_plural='units', do_collect=True, *args,
+        **kwargs):
+
         if not self.get_metric_type(metric_type_label):
             raise Exception("MetricType doesn't exist with label %s" % metric_type_label)
 
@@ -155,14 +184,24 @@ class MetricManager(object):
             label=label,
             slug=slug,
             description=description,
+            unit_label=unit_label,
+            unit_label_plural=unit_label_plural,
+            do_collect=do_collect,
             metric_properties=metric_properties,
         )
 
         return metric
 
     def collect_metrics(self):
+        """
+        Collect and create ``DataSample`` objects for all ``Metric``s that have
+        collection enabled.
+        """
+        data_samples = []
         for metric in Metric.objects.filter(do_collect=True):
-            metric.collect_metric(self)
+            data_samples.append(metric.collect_data_sample(self))
+
+        return data_samples
 
 
 

@@ -86,7 +86,7 @@ class MetricTypeBase(type):
 class MetricType(object):
     __metaclass__ = MetricTypeBase
 
-    def gather_data_sample(self, metric):
+    def collect_data_sample(self, metric):
         pass
 
 class QueryMetric(MetricType):
@@ -107,7 +107,7 @@ class QueryMetric(MetricType):
 
         return queryset
 
-    def gather_data_sample(self, metric):
+    def collect_data_sample(self, metric):
         queryset = self.build_queryset(metric)
         queryset = self.filter_queryset(queryset, metric.metric_properties.get('query_filter'))
 
