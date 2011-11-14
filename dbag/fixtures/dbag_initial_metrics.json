@@ -1,0 +1,16 @@
+[
+  {
+    "pk": 1, 
+    "model": "dbag.metric", 
+    "fields": {
+      "description": "Total number of active user accounts", 
+      "do_collect": true, 
+      "metric_type_label": "active_users_count", 
+      "label": "Number of active user accounts", 
+      "unit_label": "account", 
+      "unit_label_plural": "accounts", 
+      "metric_properties": {}, 
+      "slug": "number-of-active-user-accounts"
+    }
+  }
+]
