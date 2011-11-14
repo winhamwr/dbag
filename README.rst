@@ -192,6 +192,8 @@ An example API call to create a metric might be::
         label='superuser comments', 
         slug='superuser_comments', 
         description="number of comments made by superusers", 
+        unit_label="comment",
+        unit_label_plural="comments",
         mp_property="is_superuser=true")
 
 

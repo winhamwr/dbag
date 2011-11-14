@@ -104,4 +104,29 @@ class CommandsTest(TestCase):
         # gathered
         self.assertEqual(DataSample.objects.count(), 2)
 
+    def test_fake_metrics(self):
+        self.dbag.create_metric(
+            metric_type_label='active_users_count',
+            label='Number of Active User Accounts',
+            slug='active_user_count1',
+            description='Total number of active user accounts')
+        self.dbag.create_metric(
+            metric_type_label='active_users_count',
+            label='Number of Active User Accounts',
+            slug='active_user_count2',
+            description='Total number of active user accounts',
+        )
+
+        self.assertEqual(DataSample.objects.count(), 0)
+
+        management.call_command('dbag_fake_metrics')
+
+        # We should get 60 days worth of data times 2
+        self.assertEqual(DataSample.objects.count(), 2*60)
+
+        # Running the command again won't double up on the data
+        management.call_command('dbag_fake_metrics')
+        self.assertEqual(DataSample.objects.count(), 2*60)
+
+
 

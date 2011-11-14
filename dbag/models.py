@@ -72,6 +72,22 @@ class Metric(models.Model):
     def get_latest_sample(self):
         return DataSample.objects.filter(metric=self)[0]
 
+    def get_sample_for_day(self, utc_datetime):
+        """
+        Get the ``DataSample`` collected on the day matching the given ``utc_datetime``.
+
+        ``utc_datetime``
+        """
+        day_start = utc_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + datetime.timedelta(days=1)
+
+        samples = DataSample.objects.filter(
+            utc_timestamp__gte=day_start, utc_timestamp__lt=day_end, metric=self)
+        if len(samples) > 0:
+            return samples[0]
+
+        return None
+
     def collect_data_sample(self, manager, override_do_collect=False):
         """
         Use the appropriate ``MetricType`` corresponding to our
