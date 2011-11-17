@@ -3,7 +3,7 @@ Dbag- Easy time-series metrics and dashboarding
 """
 import copy
 
-__version__ = '0.0.1dev'
+__version__ = '0.1.0'
 __author__ = 'Wes Winham'
 __contact__ = 'winhamwr@gmail.com'
 __homepage__ = 'http://github.com/winhamwr/dbag'
