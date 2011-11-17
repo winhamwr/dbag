@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 from django.core import management
 from django.test import TestCase
 
-from dbag.models import DataSample, Metric, MetricManager
+from dbag.manager import MetricManager
+from dbag.models import DataSample, Metric
 from dbag.dbag_metric_types import UserMetric, ActiveUsersCount
 
 class ContribMetricsTest(TestCase):

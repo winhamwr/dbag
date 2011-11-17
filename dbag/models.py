@@ -1,7 +1,6 @@
 import datetime
 
 from django.db import models
-from django.template.defaultfilters import slugify
 
 from jsonfield import JSONField
 
@@ -69,6 +68,13 @@ class Metric(models.Model):
 
     do_collect = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return self.label
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ("dbag-metric-detail", [self.slug])
+
     def get_latest_sample(self):
         return DataSample.objects.filter(metric=self)[0]
 
@@ -87,6 +93,15 @@ class Metric(models.Model):
             return samples[0]
 
         return None
+
+    def get_samples_since(self, utc_datetime):
+        """
+        Get the all ``DataSample``s since the given time.
+
+        ``utc_datetime``
+        """
+        return DataSample.objects.filter(
+            utc_timestamp__gte=utc_datetime, metric=self)
 
     def collect_data_sample(self, manager, override_do_collect=False):
         """
@@ -162,62 +177,4 @@ class DashboardPanel(models.Model):
 
     class Meta:
         unique_together = ('metric', 'dashboard')
-
-class MetricManager(object):
-
-    def __init__(self):
-        self._registry = {}
-        super(MetricManager, self).__init__()
-
-    def register_metric_type(self, label, metric_type):
-        self._registry[label] = metric_type
-
-    def unregister_metric_type(self, label):
-        self._registry.pop(label)
-
-    def get_metric_type(self, label):
-        return self._registry.get(label)
-
-    def get_metric_types(self):
-        return self._registry
-
-    def create_metric(
-        self, metric_type_label, label, slug=None, description=None,
-        unit_label='unit', unit_label_plural='units', do_collect=True, *args,
-        **kwargs):
-
-        if not self.get_metric_type(metric_type_label):
-            raise Exception("MetricType doesn't exist with label %s" % metric_type_label)
-
-        if not slug:
-            slug = slugify(label)
-        metric_properties = kwargs
-        if not metric_properties:
-            metric_properties = {}
-
-        metric = Metric.objects.create(
-            metric_type_label=metric_type_label,
-            label=label,
-            slug=slug,
-            description=description,
-            unit_label=unit_label,
-            unit_label_plural=unit_label_plural,
-            do_collect=do_collect,
-            metric_properties=metric_properties,
-        )
-
-        return metric
-
-    def collect_metrics(self):
-        """
-        Collect and create ``DataSample`` objects for all ``Metric``s that have
-        collection enabled.
-        """
-        data_samples = []
-        for metric in Metric.objects.filter(do_collect=True):
-            data_samples.append(metric.collect_data_sample(self))
-
-        return data_samples
-
-
 
