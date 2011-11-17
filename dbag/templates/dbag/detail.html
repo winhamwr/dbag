@@ -1,0 +1,11 @@
+{% extends "dbag/base.html" %}
+
+{% block title %}{{ metric }} - {{ block.super }}{% endblock %}
+{% block pagetitle %}{{ metric }}{% endblock %}
+{% block extrahead %}
+  <script type="text/javascript" src="{{ STATIC_URL }}dbag/js/metric.js" charset="utf-8"></script>
+{% endblock %}
+
+{% block content %}
+  <div id="graph" data-metric="{{ metric.slug }}"></div>
+{% endblock %}

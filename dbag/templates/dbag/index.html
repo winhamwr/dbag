@@ -1,0 +1,21 @@
+{% extends "dbag/base.html" %}
+
+{% block extrahead %}
+  <script type="text/javascript" src="{{ STATIC_URL }}dbag/js/dashboard.js" charset="utf-8"></script>
+{% endblock %}
+
+{% block content %}
+  {% for report in data %}
+    <div class="metric{% if report.metric.show_sparkline %} has-sparkline{% endif %}">
+      <h2><a href="{{ report.metric.get_absolute_url }}">{{ report.metric.label }}</a></h2>
+      <p class="value" >
+        <a href="{{ report.metric.get_absolute_url }}">{{ report.latest.value}}</a>
+        <span class="timestamp">&nbsp;</span>
+      </p>
+        <div class="sparkline" id="spark{{ forloop.counter0 }}" data-metric="{{ report.metric.slug }}"></div>
+    </div>
+  {% endfor %}
+  <p class="updated">
+    Updated {{ data.0.latest.utc_timestamp|timesince }} ago.
+  </p>
+{% endblock %}
