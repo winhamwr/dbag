@@ -14,7 +14,7 @@ $(function () {
             // flot time series data needs to be in time/value pairs and the
             // time needs to be in *milliseconds*, not seconds.  fixing this in
             // Python would be easier but would limit reuse.
-            js_data = [];
+            var js_data = [];
             for (i = 0; i < response.data.length; i++) {
                 var datapoint = [];
                 datapoint[0] = response.data[i].utc_timestamp * 1000;
