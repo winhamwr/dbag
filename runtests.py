@@ -26,6 +26,7 @@ if not settings.configured:
         ROOT_URLCONF='',
         DEBUG=False,
         TEMPLATE_DEBUG=True,
+        TEMPLATE_STRING_IF_INVALID = "INVALID_TEMPLATE_VARIABLE",
     )
 
 from django.test.simple import run_tests

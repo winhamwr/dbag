@@ -9,13 +9,21 @@
     <div class="metric{% if report.metric.show_sparkline %} has-sparkline{% endif %}">
       <h2><a href="{{ report.metric.get_absolute_url }}">{{ report.metric.label }}</a></h2>
       <p class="value" >
+    {% if report.latest.utc_timestamp %}
         <a href="{{ report.metric.get_absolute_url }}">{{ report.latest.value}}</a>
+    {% else %}
+        <a href="{{ report.metric.get_absolute_url }}"><span class="no-data-collected">N/A</span></a>
+    {% endif %}
         <span class="timestamp">&nbsp;</span>
       </p>
         <div class="sparkline" id="spark{{ forloop.counter0 }}" data-metric="{{ report.metric.slug }}"></div>
     </div>
   {% endfor %}
   <p class="updated">
+{% if data.0.latest.utc_timestamp %}
     Updated {{ data.0.latest.utc_timestamp|timesince }} ago.
+{% else %}
+    <span class="no-data-collected">No data yet collected.</span>
+{% endif %}
   </p>
 {% endblock %}

@@ -68,6 +68,9 @@ class Metric(models.Model):
 
     do_collect = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ['slug']
+
     def __unicode__(self):
         return self.label
 
@@ -76,7 +79,10 @@ class Metric(models.Model):
         return ("dbag-metric-detail", [self.slug])
 
     def get_latest_sample(self):
-        return DataSample.objects.filter(metric=self)[0]
+        try:
+            return DataSample.objects.filter(metric=self)[0]
+        except IndexError:
+            return None
 
     def get_sample_for_day(self, utc_datetime):
         """
@@ -150,7 +156,7 @@ class DataSample(models.Model):
 
     class Meta:
         ordering = ['-utc_timestamp']
-        get_latest_by = 'timestamp'
+        get_latest_by = 'utc_timestamp'
         verbose_name_plural = 'data sample'
 
 class Dashboard(models.Model):

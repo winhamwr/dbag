@@ -1,10 +1,10 @@
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls.defaults import patterns, include
 
 import dbag
 dbag.autodiscover()
 
-urlpatterns = patterns(''
-   url('^dbag/', include('dbag.urls'),
+urlpatterns = patterns('',
+   (r'^dbag/', include('dbag.urls')),
 )
 

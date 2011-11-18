@@ -1,7 +1,9 @@
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import management
 from django.test import TestCase
+from django.test.client import Client
 
 from dbag.manager import MetricManager
 from dbag.models import DataSample, Metric
@@ -11,7 +13,6 @@ class ContribMetricsTest(TestCase):
     """
     Tests on the correctness of the built-in ``MetricTypes``.
     """
-    urls = 'tests.test_urls'
 
     def setUp(self):
         self.user = User.objects.create(username='admin', email='admin@example.com')
@@ -130,4 +131,53 @@ class CommandsTest(TestCase):
         self.assertEqual(DataSample.objects.count(), 2*60)
 
 
+class ClientTests(TestCase):
+    """
+    Test the views.
+    """
+    urls = 'tests.test_urls'
 
+    def setUp(self):
+        self.dbag = MetricManager()
+        self.dbag.register_metric_type('users_metric', UserMetric)
+        self.dbag.register_metric_type('active_users_count', ActiveUsersCount)
+
+        self.dbag.create_metric(
+            metric_type_label='active_users_count',
+            label='Number of Active User Accounts',
+            slug='active_user_count',
+            description='Total number of active user accounts')
+        self.dbag.create_metric(
+            metric_type_label='users_metric',
+            label='Number of User Accounts',
+            slug='user_accounts',
+            description='Total number of user accounts',
+        )
+
+        self.client = Client()
+
+    def test_no_metrics_collected_index(self):
+        # When a metric has no data yet, we shouldn't crash
+        response = self.client.get('/dbag/')
+
+        self.assertContains(response, 'Number of Active User Accounts')
+        self.assertContains(response, 'Number of User Accounts')
+        # One for each metric and one if the first collected metric (the oldest)
+        # has no data
+        self.assertContains(response, 'class="no-data-collected"', 2 + 1)
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
+
+    def test_zero_values_display(self):
+        # Shouldn't confuse a zero value with no data
+        management.call_command('dbag_collect_metrics')
+
+        # All values are zero
+        for ds in DataSample.objects.all():
+            self.assertEqual(ds.value, 0)
+
+        response = self.client.get('/dbag/')
+
+        self.assertContains(response, 'Number of Active User Accounts')
+        self.assertContains(response, 'Number of User Accounts')
+        self.assertNotContains(response, 'class="no-data-collected"')
+        self.assertNotContains(response, settings.TEMPLATE_STRING_IF_INVALID)
