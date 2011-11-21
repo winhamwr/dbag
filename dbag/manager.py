@@ -1,4 +1,3 @@
-from django.template.defaultfilters import slugify
 
 class MetricManager(object):
 
@@ -22,7 +21,9 @@ class MetricManager(object):
             self, metric_type_label, label, slug=None, description=None,
             unit_label='unit', unit_label_plural='units', do_collect=True, *args,
             **kwargs):
-        from dbag.models import Metric # Workaround so __init__ doesnt need a settings file
+        # Workaround so __init__ doesnt need a settings file
+        from dbag.models import Metric
+        from django.template.defaultfilters import slugify
 
         if not self.get_metric_type(metric_type_label):
             raise Exception("MetricType doesn't exist with label %s" % metric_type_label)
