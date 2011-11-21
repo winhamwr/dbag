@@ -1,5 +1,9 @@
 include setup.py 
 include AUTHORS CHANGELOG.rst LICENSE MANIFEST.in README.rst
-recursive-include dbag/media *
+recursive-include dbag *.py
+recursive-include dbag/static *
 recursive-include dbag/templates *
-global-exclude *~
+recursive-include dbag/fixtures *
+recursive-include tests *.py
+prune tests/*.pyc
+prune dbag/*.pyc

@@ -2,7 +2,7 @@
 
 import codecs
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 long_description = codecs.open("README.rst", "r", "utf-8").read()
 
@@ -14,10 +14,6 @@ CLASSIFIERS = [
     'Programming Language :: Python',
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Framework :: Django',
-]
-
-tests_require = [
-    'Django>=1.1',
 ]
 
 import dbag
@@ -36,9 +32,8 @@ setup(
     install_requires=[
         'nexus>=0.1.7',
         'django-jsonfield',
+        'Django>=1.1',
     ],
-    tests_require=tests_require,
-    extras_require={'test': tests_require},
     test_suite='runtests.runtests',
     include_package_data=True,
 )
